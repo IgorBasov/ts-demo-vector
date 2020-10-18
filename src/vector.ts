@@ -1,4 +1,4 @@
-function modifyParams(target: any, method: string, descriptor: PropertyDescriptor) {
+function paramsToArray(target: any, method: string, descriptor: PropertyDescriptor) {
   let originalMethod = descriptor.value;
 
   descriptor.value = function(arg) {
@@ -12,20 +12,51 @@ function modifyParams(target: any, method: string, descriptor: PropertyDescripto
   };
 }
 
-export default class Vector extends Array {
-  constructor(elements: number[] = []) {
-    super();
+interface IVector<V> {
+  dims(): number;
+  toArray(): number[];
+  get(index: number): number | never;
+  add(vectors: V[]): V;
+  add(...vectors: V[]): V;
+  sub(vectors: V[]): V;
+  sub(...vectors: V[]): V;
+  prod(scalar: number): V;
+  prod(vector: V): number;
+  div(scalar: number): V;
+  norm(): number;
+  equal(vector: V): boolean;
+  perpendicular(vector: V): boolean;
 
-    elements.forEach((el, index) => this[index] = el);
+  // crossProd?(vector: V): V
+  crossProd(vector: V, rightBasis: boolean): V
+  mixedProd(a: V, b: V): number;
+  collinear(vector: V): boolean;
+  anticollinear(vector: V): boolean;
+}
+
+class Vector implements IVector<Vector> {
+  constructor(protected elements: number[] = []) {}
+
+  /**
+   * Return dimensions qty of the vector
+   */
+  public dims() {
+    return this.elements.length;
   }
 
-  public map(cb: Function): Vector {
-    const result = Vector.gen(this.length);
-    this.forEach((el, index, arr) => {
-      result[index] = cb(el, index, arr);
-    });
+  /**
+   * Return array representation
+   */
+  public toArray(): number[] {
+    return [...this.elements];
+  }
 
-    return result;
+  /**
+   * Return element by index
+   * @param index of the element
+   */
+  public get(index: number): number {
+    return this.elements[index];
   }
 
   /**
@@ -34,15 +65,15 @@ export default class Vector extends Array {
    */
   public add(vectors: Vector[]): Vector
   public add(...vectors: Vector[]): Vector
-  @modifyParams
+  @paramsToArray
   public add(vectors) {
-    return [this, ...vectors].reduce(
-      (acc, v) => {
-        v.forEach((el, index) => acc[index] += el);
-        return acc;
-      },
-      Vector.gen(this.length)
-    );
+    const elements = vectors
+      .reduce(
+        (acc, vec) => acc.map((el, index) => el += vec.get(index)),
+        this.toArray()
+      );
+
+    return new Vector(elements);
   }
 
   /**
@@ -51,15 +82,15 @@ export default class Vector extends Array {
    */
   public sub(vectors: Vector[]): Vector
   public sub(...vectors: Vector[]): Vector
-  @modifyParams
+  @paramsToArray
   public sub(vectors) {
-    return vectors.reduce(
-      (acc, v) => {
-        v.forEach((el, index) => acc[index] -= el);
-        return acc;
-      },
-      Vector.clone(this)
-    );
+    const elements = vectors
+      .reduce(
+        (acc, vec) => acc.map((el, index) => el -= vec.get(index)),
+        this.toArray()
+      );
+
+    return new Vector(elements);
   }
 
   /**
@@ -73,43 +104,15 @@ export default class Vector extends Array {
    */
   public prod(param: Vector): number;
   public prod(param: any): any {
-    if (param instanceof Vector) {
-      return this
-        .reduce((acc, v, index) => acc + v * param[index], 0);
+    const elements = this.toArray();
+
+    if (param instanceof Vector) { // Dot product
+      return elements
+        .reduce((acc, el, index) => acc + el * param.get(index), 0);
     }
 
-    const result = Vector.gen(this.length);
-    result.forEach((_, index) => result[index] = this[index] * param);
-    return result;
-  }
-
-  /**
-   * Cross product
-   * @param vector another vector
-   * @param rightBasis if right-handed coordinate systems
-   */
-  public crossProd(vector: Vector): Vector
-  public crossProd(vector: Vector, rightBasis: boolean): Vector
-  public crossProd(vector: Vector, rightBasis: boolean = true): any { // SOLID: open-closed principle
-    if (this.length === 3) {
-      const prodVec = new Vector([
-        this[1] * vector[2] - this[2] * vector[1],
-        this[2] * vector[0] - this[0] * vector[2],
-        this[0] * vector[1] - this[1] * vector[0]
-      ]);
-
-      return rightBasis ? prodVec : prodVec.prod(-1);
-    }
-
-    throw new Error('Not implemented'); // KISS: I have to provide basic implementation 
-  }
-
-  public mixedProd(vectorA: Vector, vectorB: Vector): number {
-    if (this.length === 3) {
-      return this.prod(vectorA.crossProd(vectorB));
-    }
-
-    throw new Error('Not implemented');
+    // Per element multiplication on a scalar value
+    return new Vector(elements.map(el => el * param));
   }
 
   /**
@@ -117,32 +120,44 @@ export default class Vector extends Array {
    * @param scalar 
    */
   public div(scalar: number): Vector {
-    const result = Vector.clone(this);
-    this.forEach((el, index) => result[index] = el / scalar);
-    return result;
+    return new Vector(this.toArray().map(el => el / scalar));
   }
 
   /**
    * Norm (Euclidean norm)
    */
   public norm(): number {
-    return Math.sqrt(this.reduce((acc, el) => acc + el * el, 0));
+    return Math.sqrt(
+      this.toArray().reduce((acc, el) => acc + el * el, 0)
+    );
   }
 
   /**
-   * Is a vector equal to current
+   * Is a vector equal to the current
    * @param vector a vector to compare with
    */
   public equal(vector: Vector): boolean {
-    if (this.length !== vector.length) {
+    const dimensions = this.elements.length;
+
+    if (dimensions !== vector.dims()) {
       return false;
     }
-    for (let i = 0, len = this.length; i < len; i += 1) {
-      if (this[i] !== vector[i]) {
+
+    for (let i = 0; i < dimensions; i += 1) {
+      if (this.elements[i] !== vector.get(i)) {
         return false;
       }
     }
+
     return true;
+  }
+
+  /**
+   * Is a vector perpendicular to the current
+   * @param vector a vector to compare with
+   */
+  public perpendicular(vector: Vector): boolean {
+    return this.prod(vector) === 0;
   }
 
   /**
@@ -150,24 +165,31 @@ export default class Vector extends Array {
    * @param vector a vector to compare with
    */
   public collinear(vector: Vector): boolean {
-    if (this.length === 3) {
-      return this.crossProd(vector).norm() === 0;
+    const dimensions = this.elements.length;
+
+    // zero-vector collinear to any vector
+    if (
+      this.toArray().reduce((acc, el) => acc + el, 0) === 0
+      || vector.toArray().reduce((acc, el) => acc + el, 0) === 0
+    ) {
+      return true;
     }
 
-    for (let i = 0; i < this.length; i += 1) {
-      if (this[i] === 0 || vector[i] === 0) {
-        throw new Error('Not acceptable');
-      }
-    }
+    const diffs = new Set();
 
-    const diff = this[0] / vector[0];
-    for (let i = 1; i < this.length; i += 1) {
-      if (diff !== this[i] / vector[i]) {
+    for (let i = 0; i < dimensions; i += 1) {
+      if (this.elements[i] !== 0) {
+        if (vector.get(i) !== 0) {
+          diffs.add(this.elements[i] / vector.get(i));
+        } else {
+          return false;
+        }
+      } else if (vector.get(i) !== 0) {
         return false;
       }
     }
-    
-    return true;
+
+    return diffs.size === 1;
   }
 
   /**
@@ -175,32 +197,28 @@ export default class Vector extends Array {
    * @param vector a vector to compare with
    */
   public anticollinear(vector: Vector): boolean {
-    return this.collinear(vector) && this[0] !== 0 && vector[0] / this[0] < 0;
+    if (!this.collinear(vector)) {
+      return false;
+    }
+
+    const dimensions = this.elements.length;
+    
+    for (let i = 0; i < dimensions; i += 1) {
+      if (this.elements[i] * vector.get(i) > 0 && this.elements[i] + vector.get(i) !== 0) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
-  /**
-   * Is a vector perpendicular to current
-   * @param vector a vector to compare with
-   */
-  public perpendicular(vector: Vector): boolean {
-    return this.prod(vector) === 0;
+
+  public crossProd(vector: Vector, rightBasis: boolean = true): Vector {
+    throw new Error('Not implemented');
   }
-
-
-  /**
-   * Generate new vector with specified length and elements value
-   * @param length length of new vector
-   * @param value value of new vector's elements
-   */
-  static gen(length: number, value: number = 0): Vector {
-    return new Vector(Array(length).fill(value, 0, length));
-  }
-
-  /**
-   * Clone a vector
-   * @param vector to clone from
-   */
-  static clone(vector: Vector): Vector {
-    return new Vector(vector);
+  public mixedProd(a: Vector, b: Vector): number {
+    throw new Error('Not implemented');
   }
 }
+
+export default Vector;
