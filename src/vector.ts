@@ -26,8 +26,6 @@ interface IVector<V> {
   norm(): number;
   equal(vector: V): boolean;
   perpendicular(vector: V): boolean;
-
-  // crossProd?(vector: V): V
   crossProd(vector: V, rightBasis: boolean): V
   mixedProd(a: V, b: V): number;
   collinear(vector: V): boolean;
@@ -213,9 +211,16 @@ class Vector implements IVector<Vector> {
   }
 
 
+  /**
+   * Cross production - Not implemented
+   */
   public crossProd(vector: Vector, rightBasis: boolean = true): Vector {
     throw new Error('Not implemented');
   }
+
+  /**
+   * Mixed production - Not implemented
+   */
   public mixedProd(a: Vector, b: Vector): number {
     throw new Error('Not implemented');
   }
