@@ -1,4 +1,4 @@
-import Vector3D from './src/vector3d';
+import Vector3D from '../src/vector3d';
 
 describe('Constructor', () => {
 

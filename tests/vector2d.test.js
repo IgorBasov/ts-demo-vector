@@ -1,4 +1,4 @@
-import Vector2D from './src/vector2d';
+import Vector2D from '../src/vector2d';
 
 describe('Constructor', () => {
 
