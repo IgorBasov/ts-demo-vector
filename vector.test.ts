@@ -1,71 +1,23 @@
 import Vector from './src/vector';
 
-describe('Vector.gen method', () => {
-
-  test('should generate vector with correct length', () => {
-    const length = 3;
-
-    expect(Vector.gen(length).length).toBe(length);
-  });
-
-  test('should generate vector with specified values', () => {
-    const length = 3;
-    const value = 1;
-    const v = Vector.gen(length, value);
-
-    expect(v.reduce((acc, v) => acc + v)).toBe(length * value);
-  });
-  
-  test('should generate zero vector', () => {
-    const length = 3;
-    const v = Vector.gen(length);
-    
-    expect(v.reduce((acc, v) => acc + v)).toBe(0);
-  });
-
-});
-
-describe('Vector.clone method', () => {
-
-  test('should make Vector instance', () => {
-    const vector = new Vector([1, 2, 3]);
-  
-    expect(Vector.clone(vector)).toBeInstanceOf(Vector);
-  });
-
-  test('should make Vector that will be not strictly equal to the origin one', () => {
-    const vector = new Vector([1, 2, 3]);
-  
-    expect(Vector.clone(vector) === vector).toBe(false);
-  });
-
-  test('should make Vector with equal elements', () => {
-    const vector = new Vector([1, 2, 3]);
-    const newVector = Vector.clone(vector);
-
-    expect(newVector).toEqual(vector);
-  });
-
-});
-
 describe('Constructor', () => {
 
   test('should create new vector with correct length', () => {
     const arr = [1, 2];
     const vector = new Vector(arr);
 
-    expect(vector.length).toBe(arr.length);
+    expect(vector.dims()).toBe(arr.length);
   });
 
   test('should create new vector with correct elements', () => {
     const arr = [1, 2];
     const vector = new Vector(arr);
 
-    expect(vector[0] === arr[0] && vector[1] === arr[1]).toBe(true);
+    expect(vector.get(0) === arr[0] && vector.get(1) === arr[1]).toBe(true);
   });
 
   test('shoud create empty vector without parameters', () => {
-    expect(new Vector().length).toBe(0);
+    expect(new Vector().dims()).toBe(0);
   });
 
 });
@@ -88,7 +40,7 @@ describe('vector.add method', () => {
         const x1 = 2;
         const c = (new Vector([x0, x1])).add(new Vector([x0, x1]));
     
-        expect(c[0] === 2 * x0 && c[1] === 2 * x1).toBe(true);
+        expect(c.get(0) === 2 * x0 && c.get(1) === 2 * x1).toBe(true);
       });
 
     });
@@ -112,7 +64,7 @@ describe('vector.add method', () => {
             new Vector([x0, x1])
           );
     
-        expect(c[0] === 3 * x0 && c[1] === 3 * x1).toBe(true);
+        expect(c.get(0) === 3 * x0 && c.get(1) === 3 * x1).toBe(true);
       });
 
     });
@@ -121,7 +73,7 @@ describe('vector.add method', () => {
   
   describe('test with array parameter (i.e., `a.add([b, c, ...])`)', () => {
 
-    describe('with one parameter', () => {
+    describe('with array parameter', () => {
 
       test('should return new vector as a result of operation', () => {
         const a = new Vector([1, 2]);
@@ -135,7 +87,7 @@ describe('vector.add method', () => {
         const x1 = 2;
         const c = (new Vector([x0, x1])).add([new Vector([x0, x1])]);
     
-        expect(c[0] === 2 * x0 && c[1] === 2 * x1).toBe(true);
+        expect(c.get(0) === 2 * x0 && c.get(1) === 2 * x1).toBe(true);
       });
 
     });
@@ -159,7 +111,7 @@ describe('vector.add method', () => {
             new Vector([x0, x1])
           ]);
     
-        expect(c[0] === 3 * x0 && c[1] === 3 * x1).toBe(true);
+        expect(c.get(0) === 3 * x0 && c.get(1) === 3 * x1).toBe(true);
       });
 
     });
@@ -186,7 +138,7 @@ describe('vector.sub method', () => {
         const x1 = 2;
         const c = (new Vector([x0, x1])).sub(new Vector([x0, x1]));
     
-        expect(c[0] === 0 && c[1] === 0).toBe(true);
+        expect(c.get(0) === 0 && c.get(1) === 0).toBe(true);
       });
 
     });
@@ -210,7 +162,7 @@ describe('vector.sub method', () => {
             new Vector([x0, x1])
           );
     
-        expect(c[0] === 0 && c[1] === 0).toBe(true);
+        expect(c.get(0) === 0 && c.get(1) === 0).toBe(true);
       });
 
     });
@@ -233,7 +185,7 @@ describe('vector.sub method', () => {
         const x1 = 2;
         const c = (new Vector([x0, x1])).sub([new Vector([x0, x1])]);
     
-        expect(c[0] === 0 && c[1] === 0).toBe(true);
+        expect(c.get(0) === 0 && c.get(1) === 0).toBe(true);
       });
 
     });
@@ -257,7 +209,7 @@ describe('vector.sub method', () => {
             new Vector([x0, x1])
           ]);
     
-        expect(c[0] === 0 && c[1] === 0).toBe(true);
+        expect(c.get(0) === 0 && c.get(1) === 0).toBe(true);
       });
 
     });
@@ -280,7 +232,7 @@ describe('vector.prod method', () => {
     test('should return correct result', () => {
       const a = new Vector([1, 2]);
       const b = new Vector([1, 2]);
-      const result = a[0] * b[0] + a[1] * b[1];
+      const result = a.get(0) * b.get(0) + a.get(1) * b.get(1);
 
       expect(a.prod(b)).toBe(result);
     });
@@ -301,96 +253,9 @@ describe('vector.prod method', () => {
       const b = 2;
       const result = a.prod(b);
 
-      expect(result[0] === a[0] * b && result[1] === a[1] * b).toBe(true);
+      expect(result.get(0) === a.get(0) * b && result.get(1) === a.get(1) * b).toBe(true);
     });
 
-  });
-
-});
-
-describe('vector.crossProd method', () => {
-
-  test('should throw error when vector`s dimension is not equal to 3', () => {
-    const a = new Vector([1, 2]);
-    const b = new Vector([1, 2]);
-
-    expect(a.crossProd.bind(a, b)).toThrow(Error);
-  });
-
-  test('should return a new vector', () => {
-    const a = new Vector([1, 2, 2]);
-    const b = new Vector([1, 2, 2]);
-
-    expect(a.crossProd(b) !== a).toBe(true);
-  });
-
-  test('should return a vector', () => {
-    const a = new Vector([1, 2, 2]);
-    const b = new Vector([2, 2, 2]);
-
-    expect(a.crossProd(b).constructor === Vector).toBe(true);
-  });
-
-  test('should return correct result', () => {
-    const a = new Vector([1, 2, 2]);
-    const b = new Vector([2, 2, 2]);
-    const result = new Vector([
-      a[1] * b[2] - a[2] * b[1],
-      a[2] * b[0] - a[0] * b[2],
-      a[0] * b[1] - a[1] * b[0]
-    ]);
-
-    expect(a.crossProd(b)).toEqual(result);
-  });
-
-  test('should return correct result (for left-handed basis)', () => {
-    const a = new Vector([1, 2, 2]);
-    const b = new Vector([2, 2, 2]);
-    const result = new Vector([
-      -(a[1] * b[2] - a[2] * b[1]),
-      -(a[2] * b[0] - a[0] * b[2]),
-      -(a[0] * b[1] - a[1] * b[0])
-    ]);
-
-    expect(a.crossProd(b, false)).toEqual(result);
-  });
-
-});
-
-describe('vector.mixedProd method', () => {
-
-  test('should throw error when vector`s dimension is not equal to 3', () => {
-    const a = new Vector([1, 2]);
-    const b = new Vector([1, 2]);
-    const c = new Vector([1, 2]);
-
-    expect(a.mixedProd.bind(a, b, c)).toThrow(Error);
-  });
-
-  test('should return a number', () => {
-    const c = new Vector([2, 2, 5]);
-    const a = new Vector([1, 2, 3]);
-    const b = new Vector([1, 2, 4]);
-
-    expect(typeof c.mixedProd(a, b)).toBe('number');
-  });
-
-  test('should return correct result', () => {
-    const c = new Vector([2, 2, 5]);
-    const a = new Vector([1, 2, 3]);
-    const b = new Vector([1, 2, 4]);
-
-    const crossProd = new Vector([
-      a[1] * b[2] - a[2] * b[1],
-      a[2] * b[0] - a[0] * b[2],
-      a[0] * b[1] - a[1] * b[0]
-    ]);
-
-    const result = c[0] * crossProd[0]
-      + c[1] * crossProd[1]
-      + c[2] * crossProd[2];
-
-    expect(c.mixedProd(a, b)).toBe(result);
   });
 
 });
@@ -416,7 +281,10 @@ describe('vector.div method', () => {
     const b = 2;
     const result = a.div(b);
 
-    expect(result[0] === a[0] / b && result[1] === a[1] / 2).toBe(true);
+    expect(
+      result.get(0) === a.get(0) / b
+      && result.get(1) === a.get(1) / 2
+    ).toBe(true);
   });
 
 });
@@ -430,7 +298,7 @@ describe('vector.norm method', () => {
   test('should return correct result', () => {
     const a = new Vector([1, 2]);
     const result = Math.sqrt(
-      a.map(el => el * el).reduce((acc, el) => acc + el)
+      a.toArray().map(el => el * el).reduce((acc, el) => acc + el)
     );
 
     expect(a.norm()).toBe(result);
@@ -479,32 +347,53 @@ describe('vector.collinear method', () => {
     expect(typeof a.collinear(b)).toBe('boolean');
   });
 
-  test('should return correct result (true) with 3-dimensional vectors', () => {
+  test('should return correct result (true) with zero-vector', () => {
+    const a = new Vector([1, 2, 3]);
+    const b = new Vector([0, 0, 0]);
+
+    expect(a.collinear(b)).toBe(true);
+  });
+
+  test('should return correct result (true) 3 dims', () => {
     const a = new Vector([1, 2, 3]);
     const b = new Vector([2, 4, 6]);
 
     expect(a.collinear(b)).toBe(true);
   });
 
-  test('should return correct result (false) with 3-dimensional vectors', () => {
+  test('should return correct result (false) 3 dims', () => {
     const a = new Vector([1, 2, 3]);
     const b = new Vector([7, 4, 6]);
 
     expect(a.collinear(b)).toBe(false);
   });
 
-  test('should return correct result with non 3-dimensional vectors', () => {
+  test('should return correct result (false) 2 dims', () => {
     const a = new Vector([7, 2]);
     const b = new Vector([2, 4]);
 
     expect(a.collinear(b)).toBe(false);
   });
 
-  test('should throw an error for non 3-domensional vectors with zero elements', () => {
+  test('should return correct result (false) with zero element in one vector', () => {
     const a = new Vector([7, 2]);
     const b = new Vector([2, 0]);
 
-    expect(a.collinear.bind(a, b)).toThrow(Error);
+    expect(a.collinear(b)).toBe(false);
+  });
+
+  test('should return correct result (true) with zero elements in both vectors in same position', () => {
+    const a = new Vector([7, 0]);
+    const b = new Vector([2, 0]);
+
+    expect(a.collinear(b)).toBe(true);
+  });
+
+  test('should return correct result (false) with zero elements in both vectors in different position', () => {
+    const a = new Vector([7, 0]);
+    const b = new Vector([0, 1]);
+
+    expect(a.collinear(b)).toBe(false);
   });
 
 });
@@ -527,7 +416,7 @@ describe('vector.anticollinear method', () => {
       expect(a.anticollinear(b)).toBe(false);
     });
 
-    test('vectors are collinear and anticollinear', () => {
+    test('vectors are anticollinear', () => {
       const a = new Vector([1, -2, 3]);
       const b = new Vector([-2, 4, -6]);
   
@@ -536,7 +425,7 @@ describe('vector.anticollinear method', () => {
 
   });
 
-  describe('non 3-dimensional vectors', () => {
+  describe('2-dimensional vectors', () => {
 
     test('vectors are collinear, but not anticollinear', () => {
       const a = new Vector([1, 2]);
@@ -545,18 +434,11 @@ describe('vector.anticollinear method', () => {
       expect(a.anticollinear(b)).toBe(false);
     });
 
-    test('vectors are collinear and anticollinear', () => {
+    test('vectors are anticollinear', () => {
       const a = new Vector([1, -2]);
       const b = new Vector([-2, 4]);
   
       expect(a.anticollinear(b)).toBe(true);
-    });
-
-    test('should throw an error for vectors with zero in elements', () => {
-      const a = new Vector([7, 2]);
-      const b = new Vector([2, 0]);
-  
-      expect(a.anticollinear.bind(a, b)).toThrow(Error);
     });
 
   });
