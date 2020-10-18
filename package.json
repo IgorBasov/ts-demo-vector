@@ -1,0 +1,22 @@
+{
+  "name": "vector",
+  "version": "1.0.0",
+  "description": "basic vector",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "dev": "npx tsc --watch",
+    "build": "npx tsc"
+  },
+  "author": "IGBasov",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.12.1",
+    "@babel/plugin-proposal-decorators": "^7.12.1",
+    "@babel/preset-env": "^7.12.1",
+    "@babel/preset-typescript": "^7.12.1",
+    "@types/jest": "^26.0.14",
+    "babel-jest": "^26.5.2",
+    "jest": "^26.5.3"
+  }
+}
